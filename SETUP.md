@@ -1,48 +1,29 @@
 # Puesta en marcha
 
-Todo el código y el esquema ya están listos. Esto es lo que solo vos podés hacer (credenciales
-de tus propias cuentas, nada que yo pueda generar por vos).
+## 1. Supabase — proyecto nuevo ✅ hecho
 
-## 1. Supabase — proyecto nuevo
+Proyecto `cancha-smart-control` creado en São Paulo (sa-east-1), esquema aplicado (14 tablas +
+vista), y te mandé una invitación por email a blickautomation@gmail.com — abrila para fijar tu
+contraseña, ese es el único login que va a existir.
 
-1. [supabase.com/dashboard](https://supabase.com/dashboard) → **New Project**. Nombre sugerido:
-   `cancha-smart-control`. Guardá la contraseña de la base en tu gestor de contraseñas.
-2. Instalá el CLI y aplicá el esquema:
-   ```bash
-   npx supabase login
-   npx supabase link --project-ref <ref-del-proyecto>
-   npx supabase db push
-   ```
-   Esto corre `supabase/migrations/0001_schema.sql` (14 tablas + la vista de costo promedio
-   USDC + los umbrales de alerta por defecto).
-3. **Authentication → Users → Add user** con tu email. Ese es el único login que va a existir
-   — no hace falta nada más de configuración de auth.
-4. **Project Settings → API** — copiá `Project URL`, `anon public key` y `service_role key`.
-
-## 2. Variables de entorno
-
-```bash
-cp .env.example .env.local
-```
-
-Completá `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` y
-`SUPABASE_SERVICE_ROLE_KEY` con lo del paso anterior.
+`.env.local` ya está completo en tu máquina (gitignored, nunca se commitea) con la URL del
+proyecto y las keys. Para correr local:
 
 ```bash
 npm run dev
 ```
 
-Entrá a `http://localhost:3000`, iniciá sesión con el usuario que creaste, y ya debería andar
+Entrá a `http://localhost:3000`, iniciá sesión con el usuario que invité, y ya debería andar
 (vacío, hasta que cargues clientes/costos fijos/USDC o corra el sync).
 
-## 3. Deploy (Vercel)
+## 2. Deploy (Vercel)
 
 1. Pusheá este repo a GitHub (`cancha-smart-control`, privado).
 2. [vercel.com/new](https://vercel.com/new) → importar el repo.
-3. Cargar las mismas 3 variables de entorno del paso 2 en Vercel (Production + Preview).
+3. Cargar las 3 variables de `.env.local` en Vercel (Production + Preview).
 4. Deploy. PWA instalable desde el celular apenas abrís la URL (ícono "Agregar a inicio").
 
-## 4. Sync diario (n8n)
+## 3. Sync diario (n8n)
 
 El workflow todavía no existe en tu n8n — la especificación completa, nodo por nodo, está en
 [`n8n/sync-diario.md`](./n8n/sync-diario.md). Para construirlo hacen falta:
@@ -50,12 +31,12 @@ El workflow todavía no existe en tu n8n — la especificación completa, nodo p
 1. **Anthropic Admin API key** — console.anthropic.com → Organization → Admin API Keys.
 2. **OpenAI Admin key de solo lectura** (scope de Usage/Costs) — platform.openai.com →
    Organization → Admin Keys.
-3. El `service_role` de Supabase del paso 1.
+3. El `service_role` de Supabase (ya está en `.env.local`).
 
 Con esas tres credenciales cargadas como credenciales de n8n, decime y armo el workflow
 (puedo hacerlo directo en tu n8n vía MCP).
 
-## 5. Carga inicial de datos
+## 4. Carga inicial de datos
 
 Una vez con la app corriendo:
 
