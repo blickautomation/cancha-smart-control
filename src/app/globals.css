@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+:root {
+  /* Marca Cancha Smart */
+  --color-background: #050a30;
+  --color-surface: #0b1240;
+  --color-card: #0e1448;
+  --color-border: #1f2a5c;
+  --color-foreground: #f4f6ff;
+  --color-muted-foreground: #9aa3d1;
+
+  --color-primary: #b7f500;
+  --color-primary-foreground: #050a30;
+  --color-accent: #19c8ff;
+  --color-accent-foreground: #050a30;
+
+  --color-positive: #b7f500;
+  --color-negative: #ff5a6e;
+  --color-warning: #ffb020;
+
+  --radius: 0.75rem;
+}
+
+@theme inline {
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-card: var(--color-card);
+  --color-border: var(--color-border);
+  --color-foreground: var(--color-foreground);
+  --color-muted-foreground: var(--color-muted-foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-accent: var(--color-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
+  --color-positive: var(--color-positive);
+  --color-negative: var(--color-negative);
+  --color-warning: var(--color-warning);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
+  --radius-lg: var(--radius);
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+::selection {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
