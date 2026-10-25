@@ -1,8 +1,18 @@
 # Workflow n8n: sync diario Cancha Smart
 
-Todavía no está creado en n8n — falta: (1) el proyecto Supabase (URL + service_role),
-(2) una Anthropic Admin API key, (3) una OpenAI Admin key de solo lectura. En cuanto existan
-los tres, este documento es la especificación exacta para construirlo (o pedírselo a Claude).
+Las claves admin ya están verificadas contra las APIs reales (Anthropic y OpenAI, ambas
+devuelven 200). Clientes, mensualidades conocidas y el mapeo `api_key_id` → cliente ya están
+sembrados en Supabase (`clientes`, `cliente_mensualidades`, `cliente_api_keys`). Falta: crear
+las dos credenciales en n8n (ver abajo) y construir el workflow en sí.
+
+**Caso especial NOA:** el cliente real "NOA" son dos bots distintos en el sistema —
+**Club NOA** y **Padel NOA** — cada uno con su propia Anthropic key, pero compartiendo una
+sola OpenAI key de transcripción (`key_1YU2ed4FKZ9PyyOo`). `cliente_api_keys` ya no tiene
+constraint de unicidad por key (migración `0002_api_keys_compartidas.sql`), así que la misma
+`api_key_id` puede estar vigente para más de un cliente a la vez. Regla de reparto: cuando el
+sync calcule `uso_diario_openai` para una key y encuentre más de un cliente vigente con esa
+`api_key_id` ese día, divide el costo del día **en partes iguales entre esos clientes** (N-way
+split — hoy son 2, pero el código no debería asumir que siempre son 2).
 
 Corre 1 vez por día (ej. `0 7 * * *`, cron trigger). Procesa el día anterior completo (UTC-3:
 Argentina) para que los contadores de uso ya estén cerrados del lado de Anthropic/OpenAI.
@@ -45,8 +55,11 @@ Argentina) para que los contadores de uso ya estén cerrados del lado de Anthrop
    `costo_usd = (tokens_entrada * precio_input + tokens_salida * precio_output +
    tokens_cache_5m * precio_cache_5m + tokens_cache_1h * precio_cache_1h +
    tokens_cache_lectura * precio_cache_lectura) / 1_000_000`.
-8. **Code — resolver cliente OpenAI** — mismo join por `api_key_id`, sin cálculo (el costo ya
-   viene en USD desde la Costs API).
+8. **Code — resolver cliente OpenAI** — join por `api_key_id` contra `cliente_api_keys`
+   (vigentes ese día), sin cálculo de costo (ya viene en USD desde la Costs API). Si el join
+   devuelve **más de un cliente** para la misma `api_key_id` (caso NOA), dividir
+   `costo_usd` del día **en partes iguales** entre todos esos clientes antes del upsert — no
+   asumir que son siempre 2.
 9. **Supabase: UPSERT `uso_diario_anthropic`** y **UPSERT `uso_diario_openai`**
    (`on_conflict` = las unique constraints de la migración). Usar
    `Prefer: resolution=merge-duplicates` en el header si se hace vía REST `POST`.
