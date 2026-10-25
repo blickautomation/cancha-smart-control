@@ -1,9 +1,29 @@
 # Workflow n8n: sync diario Cancha Smart
 
+**El workflow ya existe en n8n:** [Cancha Smart - Sync diario (uso y costos)](https://proyectos-personales-n8n-personal.gmkkwl.easypanel.host/workflow/zmk4N7F7eBmhVRJz)
+(id `zmk4N7F7eBmhVRJz`, proyecto Blick Automation). Cubre la ingesta diaria (Anthropic Usage
+API + OpenAI Costs API → `uso_diario_anthropic` / `uso_diario_openai`, con reparto N-way para
+la key compartida de NOA). **Fase 2, todavía no construida:** calcular
+`costos_mensuales_cliente`, chequeo de alertas y la conciliación mensual contra la Anthropic
+Cost API — ver la sección "Nodos" más abajo para esa parte.
+
 Las claves admin ya están verificadas contra las APIs reales (Anthropic y OpenAI, ambas
 devuelven 200). Clientes, mensualidades conocidas y el mapeo `api_key_id` → cliente ya están
-sembrados en Supabase (`clientes`, `cliente_mensualidades`, `cliente_api_keys`). Falta: crear
-las dos credenciales en n8n (ver abajo) y construir el workflow en sí.
+sembrados en Supabase (`clientes`, `cliente_mensualidades`, `cliente_api_keys`).
+
+**Único paso pendiente para que el workflow corra:** las 3 credenciales quedaron creadas como
+placeholders (`newCredential(...)`) — el workflow no tiene a qué nodo n8n apuntar todavía.
+Abrí el workflow en n8n, cada HTTP Request node con el ícono de alerta de credencial te deja
+crearla ahí mismo con un click. Detalle exacto de cada una:
+
+1. **`Supabase Cancha Smart (service_role)`** — tipo **Supabase API** (credencial nativa de
+   n8n, no HTTP Header Auth). Pide `Host` (`https://fmmuiveffdcaznwzqbft.supabase.co`) y
+   `Service Role Secret` (el que está en `.env.local` del repo, `SUPABASE_SERVICE_ROLE_KEY`).
+   Se usa en 4 nodos — crearla una vez y n8n te deja reusarla en los otros 3.
+2. **`Anthropic Admin API`** — tipo **HTTP Header Auth con plantilla** (`Header Auth
+   (Template)` en el picker). Header `x-api-key`, valor la Admin key `sk-ant-admin01-...`.
+3. **`OpenAI Admin API (read-only)`** — mismo tipo de credencial con plantilla. Header
+   `Authorization`, valor `Bearer sk-admin-...` (con el prefijo `Bearer ` incluido).
 
 **Caso especial NOA:** el cliente real "NOA" son dos bots distintos en el sistema —
 **Club NOA** y **Padel NOA** — cada uno con su propia Anthropic key, pero compartiendo una
@@ -17,15 +37,18 @@ split — hoy son 2, pero el código no debería asumir que siempre son 2).
 Corre 1 vez por día (ej. `0 7 * * *`, cron trigger). Procesa el día anterior completo (UTC-3:
 Argentina) para que los contadores de uso ya estén cerrados del lado de Anthropic/OpenAI.
 
-## Credenciales a crear en n8n
+## Credenciales (ver detalle exacto más arriba)
 
-| Nombre sugerido | Tipo | De dónde sale |
-|---|---|---|
-| `Anthropic Admin API` | HTTP Header Auth (`x-api-key`) | console.anthropic.com → Organization → Admin API Keys (empieza con `sk-ant-admin...`) |
-| `OpenAI Admin API (read-only)` | HTTP Header Auth (`Authorization: Bearer ...`) | platform.openai.com → Organization → Admin Keys, scope solo lectura de Usage/Costs |
-| `Supabase Cancha Smart (service_role)` | HTTP Header Auth (`apikey` + `Authorization: Bearer ...`) | Supabase → Project Settings → API, una vez creado el proyecto nuevo |
+De dónde sale cada clave admin: Anthropic en console.anthropic.com → Organization → Admin
+keys (`sk-ant-admin01-...`, requiere que la org esté convertida a "equipo", no individual).
+OpenAI en platform.openai.com/settings/organization/admin-keys (`sk-admin-...`, scope solo
+lectura de Usage/Costs). Ambas ya verificadas contra las APIs reales.
 
 ## Nodos
+
+Construidos en el workflow real: 1, 2, 3 (todos los proveedores, no solo Anthropic), 4, 6, 7,
+8, 9. **Pendientes de fase 2:** 5, 10, 11 y lo que sigue (conciliación, `costos_mensuales_cliente`,
+alertas) — no están en el workflow todavía.
 
 1. **Cron Trigger** — diario, horario de Argentina.
 2. **Set — rango de fechas** — calcula `fecha_desde`/`fecha_hasta` = ayer (00:00–23:59 UTC-3,
