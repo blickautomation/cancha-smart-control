@@ -11,7 +11,7 @@ import { MargenChart } from "@/components/margen-chart";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatArs, formatMes, formatPct } from "@/lib/utils";
+import { formatArs, formatMes, formatPct, formatUsd } from "@/lib/utils";
 
 export default async function DashboardHomePage() {
   const ultimoMes = await getUltimoMesConDatos();
@@ -149,11 +149,12 @@ export default async function DashboardHomePage() {
           <CardTitle className="text-foreground">Por cliente — {formatMes(ultimoMes)}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto p-0">
-          <table className="w-full min-w-[640px] text-sm">
+          <table className="w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <th className="px-4 py-2">Cliente</th>
                 <th className="px-4 py-2 text-right">Mensualidad</th>
+                <th className="px-4 py-2 text-right">APIs (USD)</th>
                 <th className="px-4 py-2 text-right">Costo</th>
                 <th className="px-4 py-2 text-right">Ganancia</th>
                 <th className="px-4 py-2 text-right">Margen</th>
@@ -172,6 +173,9 @@ export default async function DashboardHomePage() {
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono tabular-nums">
                     {formatArs(f.mensualidad_ars)}
+                  </td>
+                  <td className="px-4 py-2.5 text-right font-mono tabular-nums">
+                    {formatUsd(f.costo_apis_usd)}
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono tabular-nums">
                     {formatArs(f.costo_total_ars)}
