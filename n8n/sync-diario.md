@@ -1,22 +1,59 @@
 # Workflow n8n: sync diario Cancha Smart
 
-**✅ Activo y funcionando.** [Cancha Smart - Sync diario (uso y costos)](https://proyectos-personales-n8n-personal.gmkkwl.easypanel.host/workflow/zmk4N7F7eBmhVRJz)
-(id `zmk4N7F7eBmhVRJz`, proyecto Blick Automation) corre todos los días a las 07:00, publicado
-y probado de punta a punta contra las APIs reales — ya cargó uso real del 25/10 en
-`uso_diario_anthropic` (4 clientes) y `uso_diario_openai` (Estadio Pádel Center). Cubre
-Anthropic Usage API + OpenAI Costs API con reparto N-way para la key compartida de NOA.
-**Fase 2, todavía no construida:** `costos_mensuales_cliente`, alertas y conciliación mensual
-— ver la sección "Nodos" más abajo.
+**✅ Activo y funcionando — fases 1 y 2 completas.** [Cancha Smart - Sync diario (uso y costos)](https://proyectos-personales-n8n-personal.gmkkwl.easypanel.host/workflow/zmk4N7F7eBmhVRJz)
+(id `zmk4N7F7eBmhVRJz`, 27 nodos, proyecto Blick Automation) corre todos los días a las 07:00,
+publicado y probado de punta a punta contra las APIs y la DB reales:
 
-## Bugs reales encontrados y resueltos durante la primera corrida
+- **Fase 1 — ingesta:** Anthropic Usage API + OpenAI Costs API → `uso_diario_anthropic` /
+  `uso_diario_openai`, con reparto N-way para la key compartida de NOA.
+- **Fase 2 — ganancia y alertas:** prorrateo de costos fijos → `costos_fijos_prorrateo`;
+  mensualidad vigente − (costo APIs en ARS + fijo prorrateado) → `costos_mensuales_cliente`
+  (ya tiene una fila por cliente para octubre 2026, verificado); alertas de `margen_bajo`
+  (deduplicada por cliente/mes) y `consumo_anomalo` (hoy vs. promedio de los últimos días,
+  con mínimo 3 días de historial).
+- **Conciliación mensual: pendiente de decisión del usuario**, ver más abajo.
+
+## Pendiente de tu lado para que los números en ARS dejen de ser $0
+
+Ahora mismo `costo_promedio_usdc_usado` y el prorrateo de fijos dan 0 porque todavía no
+cargaste datos — en cuanto los cargues desde la app, el sync de mañana los toma solo:
+
+1. **Conversiones USDC** (página USDC) — sin esto, `costo_apis_ars` queda en $0 aunque haya
+   consumo real en USD.
+2. **Costos fijos** (página Costos fijos) — VPS ($246.011,76 anual) + lo que corresponda.
+3. **Mensualidad de Padel NOA y Club NOA** (página Clientes) — hoy están en $0.
+
+## Conciliación mensual — necesita tu decisión
+
+La Anthropic Cost API **no permite filtrar ni agrupar por `api_key_id`** (lo probé: solo
+acepta `group_by` por `description` o `workspace_id`, y tampoco acepta un filtro de
+`api_key_ids`). Además, **todas las keys de Cancha Smart comparten el mismo workspace** con
+otros proyectos de Blick Automation (Seguimiento Leads, DEMOS, etc.), así que ni agrupando por
+`workspace_id` se puede aislar el gasto de Cancha Smart. Conclusión: con la cuenta de Anthropic
+armada como está hoy, **no se puede conciliar por cliente, y conciliar a nivel organización
+compararía peras con bananas** (incluiría gasto de otros proyectos). Opciones:
+
+- **(a)** Mover las keys de los bots de Cancha Smart a un **workspace de Anthropic dedicado**
+  — ahí sí `group_by=workspace_id` da un total limpio para comparar contra la suma calculada.
+  Requiere generar keys nuevas y reasignarlas en los bots en producción (lo coordinamos aparte,
+  no es algo para hacer a la ligera).
+- **(b)** Dejar la conciliación mensual afuera por ahora — la Usage API ya la probamos y
+  funciona perfecto para el cálculo por cliente, que es lo que importa para `costos_mensuales_cliente`;
+  la conciliación es solo un chequeo extra de "¿Anthropic me está cobrando lo que yo calculo?".
+
+No construí los nodos de conciliación todavía — a la espera de que elijas (a) o (b).
+
+## Bugs reales encontrados y resueltos durante las pruebas
 
 1. **`service_role` sin permisos.** Al desactivar "Automatically expose new tables" en la
    creación del proyecto, Supabase no aplicó los GRANTs automáticos — ni siquiera a
    `service_role` (que bypassea RLS pero no bypassea GRANTs faltantes). Fix:
-   `supabase/migrations/0003_grants_service_role.sql`.
+   `supabase/migrations/0003_grants_service_role.sql` (y un `grant select` extra sobre la
+   vista nueva en `0004_vista_costo_diario.sql`).
 2. **`group_by[]` repetido mal serializado.** n8n combina dos query params con el mismo nombre
    en formato `group_by[][0]`/`group_by[][1]` por defecto; Anthropic lo rechaza (400). Fix:
-   `options.queryParameterArrays: "repeat"` en el nodo de la Usage API.
+   `options.queryParameterArrays: "repeat"` en cualquier nodo con query params repetidos
+   (Usage API, y el filtro `fecha=gte...&fecha=lte...` de costo diario).
 3. **Credencial "Simplified Custom Auth" (Templated Auth) no dejaba guardar** en la UI del
    usuario (botón Save nunca se habilitaba, ni con `{{placeholder}}`). Se resolvió creando las
    credenciales de Anthropic/OpenAI como **Header Auth** / **Bearer Auth** normales desde la
@@ -25,6 +62,12 @@ Anthropic Usage API + OpenAI Costs API con reparto N-way para la key compartida 
 4. **Bearer Auth con el prefijo duplicado.** La credencial tipo Bearer Auth ya antepone
    "Bearer " sola; si se escribe también en el campo, OpenAI responde 401. El campo debe tener
    *solo* la key, sin "Bearer ".
+5. **Una tabla vacía cortaba toda la cadena.** `costos_fijos`/`conversiones_usdc`/`alertas`
+   vacías (instalación nueva) hacen que esos `HTTP Request` devuelvan 0 items, y en n8n eso
+   salta todos los nodos siguientes — aunque los Code nodes de más abajo no dependieran de ese
+   dato puntual. Fix: `alwaysOutputData: true` en los 8 nodos de referencia que pueden venir
+   legítimamente vacíos, más un guard explícito en el código (`!= null` en vez de
+   `.length`) para no escribir `NaN` cuando el ítem sintético `{}` llega sin el campo esperado.
 
 ## Credenciales ya creadas (para referencia)
 
