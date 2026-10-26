@@ -1,29 +1,43 @@
 # Workflow n8n: sync diario Cancha Smart
 
-**El workflow ya existe en n8n:** [Cancha Smart - Sync diario (uso y costos)](https://proyectos-personales-n8n-personal.gmkkwl.easypanel.host/workflow/zmk4N7F7eBmhVRJz)
-(id `zmk4N7F7eBmhVRJz`, proyecto Blick Automation). Cubre la ingesta diaria (Anthropic Usage
-API + OpenAI Costs API → `uso_diario_anthropic` / `uso_diario_openai`, con reparto N-way para
-la key compartida de NOA). **Fase 2, todavía no construida:** calcular
-`costos_mensuales_cliente`, chequeo de alertas y la conciliación mensual contra la Anthropic
-Cost API — ver la sección "Nodos" más abajo para esa parte.
+**✅ Activo y funcionando.** [Cancha Smart - Sync diario (uso y costos)](https://proyectos-personales-n8n-personal.gmkkwl.easypanel.host/workflow/zmk4N7F7eBmhVRJz)
+(id `zmk4N7F7eBmhVRJz`, proyecto Blick Automation) corre todos los días a las 07:00, publicado
+y probado de punta a punta contra las APIs reales — ya cargó uso real del 25/10 en
+`uso_diario_anthropic` (4 clientes) y `uso_diario_openai` (Estadio Pádel Center). Cubre
+Anthropic Usage API + OpenAI Costs API con reparto N-way para la key compartida de NOA.
+**Fase 2, todavía no construida:** `costos_mensuales_cliente`, alertas y conciliación mensual
+— ver la sección "Nodos" más abajo.
 
-Las claves admin ya están verificadas contra las APIs reales (Anthropic y OpenAI, ambas
-devuelven 200). Clientes, mensualidades conocidas y el mapeo `api_key_id` → cliente ya están
-sembrados en Supabase (`clientes`, `cliente_mensualidades`, `cliente_api_keys`).
+## Bugs reales encontrados y resueltos durante la primera corrida
 
-**Único paso pendiente para que el workflow corra:** las 3 credenciales quedaron creadas como
-placeholders (`newCredential(...)`) — el workflow no tiene a qué nodo n8n apuntar todavía.
-Abrí el workflow en n8n, cada HTTP Request node con el ícono de alerta de credencial te deja
-crearla ahí mismo con un click. Detalle exacto de cada una:
+1. **`service_role` sin permisos.** Al desactivar "Automatically expose new tables" en la
+   creación del proyecto, Supabase no aplicó los GRANTs automáticos — ni siquiera a
+   `service_role` (que bypassea RLS pero no bypassea GRANTs faltantes). Fix:
+   `supabase/migrations/0003_grants_service_role.sql`.
+2. **`group_by[]` repetido mal serializado.** n8n combina dos query params con el mismo nombre
+   en formato `group_by[][0]`/`group_by[][1]` por defecto; Anthropic lo rechaza (400). Fix:
+   `options.queryParameterArrays: "repeat"` en el nodo de la Usage API.
+3. **Credencial "Simplified Custom Auth" (Templated Auth) no dejaba guardar** en la UI del
+   usuario (botón Save nunca se habilitaba, ni con `{{placeholder}}`). Se resolvió creando las
+   credenciales de Anthropic/OpenAI como **Header Auth** / **Bearer Auth** normales desde la
+   sección central de Credentials de n8n (no desde el picker del nodo, que el servidor rechaza
+   para credenciales nuevas de ese tipo) y asignándolas por API con el `credentialId` real.
+4. **Bearer Auth con el prefijo duplicado.** La credencial tipo Bearer Auth ya antepone
+   "Bearer " sola; si se escribe también en el campo, OpenAI responde 401. El campo debe tener
+   *solo* la key, sin "Bearer ".
+
+## Credenciales ya creadas (para referencia)
+
+Las 3 están creadas, asignadas a sus nodos y probadas en una corrida real.
 
 1. **`Supabase Cancha Smart (service_role)`** — tipo **Supabase API** (credencial nativa de
-   n8n, no HTTP Header Auth). Pide `Host` (`https://fmmuiveffdcaznwzqbft.supabase.co`) y
-   `Service Role Secret` (el que está en `.env.local` del repo, `SUPABASE_SERVICE_ROLE_KEY`).
-   Se usa en 4 nodos — crearla una vez y n8n te deja reusarla en los otros 3.
-2. **`Anthropic Admin API`** — tipo **HTTP Header Auth con plantilla** (`Header Auth
-   (Template)` en el picker). Header `x-api-key`, valor la Admin key `sk-ant-admin01-...`.
-3. **`OpenAI Admin API (read-only)`** — mismo tipo de credencial con plantilla. Header
-   `Authorization`, valor `Bearer sk-admin-...` (con el prefijo `Bearer ` incluido).
+   n8n). `Host`: `https://fmmuiveffdcaznwzqbft.supabase.co`. `Service Role Secret`: el de
+   `.env.local` del repo (`SUPABASE_SERVICE_ROLE_KEY`). Usada en 4 nodos.
+2. **`Anthropic Admin API`** — tipo **Header Auth** (creada desde la sección central de
+   Credentials, no desde el nodo). Header `x-api-key`, valor la Admin key `sk-ant-admin01-...`.
+3. **`OpenAI Admin API (read-only)`** — tipo **Bearer Auth** (ídem, desde Credentials). El
+   campo del token lleva *solo* `sk-admin-...`, sin el prefijo "Bearer " (la credencial lo
+   agrega sola).
 
 **Caso especial NOA:** el cliente real "NOA" son dos bots distintos en el sistema —
 **Club NOA** y **Padel NOA** — cada uno con su propia Anthropic key, pero compartiendo una
