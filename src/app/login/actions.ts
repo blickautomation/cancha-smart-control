@@ -16,7 +16,12 @@ export async function signIn(
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    return { error: "Email o contraseña incorrectos." };
+    const credencialesMalas = error.code === "invalid_credentials";
+    return {
+      error: credencialesMalas
+        ? "Email o contraseña incorrectos."
+        : `No se pudo iniciar sesión: ${error.message}`,
+    };
   }
 
   redirect("/");
