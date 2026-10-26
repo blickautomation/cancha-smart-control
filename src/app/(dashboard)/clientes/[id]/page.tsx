@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { StaggerReveal } from "@/components/stagger-reveal";
 import { formatArs, formatMes, formatPct } from "@/lib/utils";
 
 const estadoVariant = { activo: "positive", pausado: "warning", baja: "negative" } as const;
@@ -178,9 +179,12 @@ export default async function ClienteDetallePage({
                   <th className="px-4 py-2 text-right">Margen</th>
                 </tr>
               </thead>
-              <tbody>
+              <StaggerReveal as="tbody">
                 {historial.map((h) => (
-                  <tr key={h.id} className="border-b border-border/60 last:border-0">
+                  <tr
+                    key={h.id}
+                    className="border-b border-border/60 transition-colors duration-150 last:border-0 hover:bg-surface/60"
+                  >
                     <td className="px-4 py-2.5 capitalize">{formatMes(h.mes)}</td>
                     <td className="px-4 py-2.5 text-right font-mono tabular-nums">
                       {formatArs(h.mensualidad_ars)}
@@ -200,7 +204,7 @@ export default async function ClienteDetallePage({
                     </td>
                   </tr>
                 ))}
-              </tbody>
+              </StaggerReveal>
             </table>
           )}
         </CardContent>

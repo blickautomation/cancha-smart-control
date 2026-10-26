@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { StaggerReveal } from "@/components/stagger-reveal";
+import { PageHeader } from "@/components/page-header";
 
 const estadoVariant = {
   activo: "positive",
@@ -19,15 +20,12 @@ export default async function ClientesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">Clientes</h1>
-        <p className="text-sm text-muted-foreground">Complejos deportivos activos y de baja.</p>
-      </div>
+      <PageHeader title="Clientes" description="Complejos deportivos activos y de baja." />
 
       <StaggerReveal className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {clientes.map((c) => (
           <Link key={c.id} href={`/clientes/${c.id}`}>
-            <Card className="h-full transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+            <Card interactive className="h-full">
               <CardHeader className="flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-base font-semibold text-foreground">
                   {c.nombre}

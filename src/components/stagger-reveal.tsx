@@ -3,35 +3,45 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { gsap } from "gsap";
 import { cn } from "@/lib/utils";
+import { prefersReducedMotion } from "@/lib/motion";
 
 export function StaggerReveal({
   children,
   className,
+  as = "grid",
 }: {
   children: ReactNode;
   className?: string;
+  /** Tag to render — "tbody" lets this wrap table rows. */
+  as?: "grid" | "tbody";
 }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement & HTMLTableSectionElement>(null);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || prefersReducedMotion()) return;
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const items = Array.from(el.children);
-    const tween = gsap.from(items, {
-      opacity: 0,
-      y: 16,
-      duration: 0.4,
-      stagger: 0.06,
-      ease: "power2.out",
+    const ctx = gsap.context(() => {
+      gsap.from(Array.from(el.children), {
+        opacity: 0,
+        y: 16,
+        scale: 0.97,
+        duration: 0.5,
+        stagger: { each: 0.06, from: "start" },
+        ease: "back.out(1.4)",
+      });
     });
 
-    return () => {
-      tween.kill();
-    };
+    return () => ctx.revert();
   }, []);
+
+  if (as === "tbody") {
+    return (
+      <tbody ref={ref} className={cn(className)}>
+        {children}
+      </tbody>
+    );
+  }
 
   return (
     <div ref={ref} className={cn(className)}>

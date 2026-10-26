@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
+import { StaggerReveal } from "@/components/stagger-reveal";
 import { formatArs } from "@/lib/utils";
 
 export default async function UsdcPage() {
@@ -14,13 +16,10 @@ export default async function UsdcPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">Conversiones a USDC</h1>
-        <p className="text-sm text-muted-foreground">
-          Pesos entregados y USDC recibidos vía la app ARQ. El costo promedio ponderado se usa
-          para convertir a pesos los costos en USD de Anthropic y OpenAI.
-        </p>
-      </div>
+      <PageHeader
+        title="Conversiones a USDC"
+        description="Pesos entregados y USDC recibidos vía la app ARQ. El costo promedio ponderado se usa para convertir a pesos los costos en USD de Anthropic y OpenAI."
+      />
 
       <Card className="max-w-xs">
         <CardHeader>
@@ -42,9 +41,12 @@ export default async function UsdcPage() {
                 <th className="px-4 py-2 text-right">$/USDC</th>
               </tr>
             </thead>
-            <tbody>
+            <StaggerReveal as="tbody">
               {conversiones.map((c) => (
-                <tr key={c.id} className="border-b border-border/60 last:border-0">
+                <tr
+                  key={c.id}
+                  className="border-b border-border/60 transition-colors duration-150 last:border-0 hover:bg-surface/60"
+                >
                   <td className="px-4 py-2.5">{c.fecha}</td>
                   <td className="px-4 py-2.5 text-right font-mono tabular-nums">
                     {formatArs(c.pesos_entregados)}
@@ -64,7 +66,7 @@ export default async function UsdcPage() {
                   </td>
                 </tr>
               ) : null}
-            </tbody>
+            </StaggerReveal>
           </table>
         </CardContent>
       </Card>

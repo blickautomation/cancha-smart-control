@@ -1,33 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 /**
- * Cliente Supabase para Server Components / Server Actions / Route Handlers.
- * Usa la service_role key: nunca se expone al browser (este archivo no lleva "use client").
+ * Cliente Supabase para datos (Server Components / Server Actions).
+ * Usa la service_role key y NO lee cookies de sesión: con @supabase/ssr, una sesión
+ * de usuario en las cookies pisaba la service_role y las consultas corrían como
+ * "authenticated" (sin grants) -> error 42501 después de loguearse.
+ * Nunca se expone al browser (este archivo no lleva "use client").
  */
 export async function createClient() {
-  const cookieStore = await cookies();
-
-  return createServerClient(
+  return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Server Component llamando desde un contexto de solo lectura: el proxy
-            // ya refresca la sesión, así que esto se puede ignorar.
-          }
-        },
-      },
-    }
+    { auth: { persistSession: false, autoRefreshToken: false } }
   );
 }
 

@@ -8,18 +8,19 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-primary text-primary-foreground hover:brightness-110 shadow-[0_0_0_rgba(183,245,0,0)] hover:shadow-[0_0_24px_rgba(183,245,0,0.35)]",
-        accent: "bg-accent text-accent-foreground hover:brightness-110",
+          "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-primary)_100%,white_18%),var(--color-primary))] text-primary-foreground shadow-[0_1px_0_rgba(255,255,255,0.25)_inset,0_0_0_rgba(183,245,0,0)] hover:shadow-[0_1px_0_rgba(255,255,255,0.25)_inset,var(--shadow-glow-primary)]",
+        accent:
+          "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-accent)_100%,white_18%),var(--color-accent))] text-accent-foreground shadow-[0_1px_0_rgba(255,255,255,0.25)_inset] hover:shadow-[0_1px_0_rgba(255,255,255,0.25)_inset,var(--shadow-glow-accent)]",
         outline:
-          "border border-border bg-transparent text-foreground hover:bg-surface",
+          "border border-border bg-transparent text-foreground hover:border-primary/40 hover:bg-surface",
         ghost: "bg-transparent text-foreground hover:bg-surface",
         destructive: "bg-negative text-white hover:brightness-110",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-8 px-3 text-xs",
+        default: "h-11 px-4 py-2",
+        sm: "h-9 px-3 text-xs",
         lg: "h-12 px-6 text-base",
-        icon: "h-10 w-10",
+        icon: "h-11 w-11",
       },
     },
     defaultVariants: {

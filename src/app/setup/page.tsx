@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StaggerReveal } from "@/components/stagger-reveal";
 
 const steps = [
   {
@@ -23,16 +24,14 @@ export default function SetupPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-6 px-4 py-12">
       <div>
-        <span className="font-mono text-xs uppercase tracking-[0.3em] text-accent">
-          Cancha Smart
-        </span>
+        <span className="text-eyebrow">Cancha Smart</span>
         <h1 className="mt-2 text-xl font-semibold">Todavía falta conectar Supabase</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           La app corre, pero no encuentra las variables de entorno de Supabase. Seguí estos
           pasos y recargá.
         </p>
       </div>
-      <div className="flex flex-col gap-3">
+      <StaggerReveal className="flex flex-col gap-3">
         {steps.map((step) => (
           <Card key={step.title}>
             <CardHeader>
@@ -41,7 +40,7 @@ export default function SetupPage() {
             <CardContent className="pt-0 text-sm text-muted-foreground">{step.body}</CardContent>
           </Card>
         ))}
-      </div>
+      </StaggerReveal>
     </main>
   );
 }

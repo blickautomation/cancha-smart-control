@@ -3,6 +3,8 @@ import { marcarAlertaVista } from "./actions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
+import { StaggerReveal } from "@/components/stagger-reveal";
 
 const severidadVariant = { critical: "negative", warning: "warning", info: "accent" } as const;
 
@@ -11,14 +13,12 @@ export default async function AlertasPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">Alertas</h1>
-        <p className="text-sm text-muted-foreground">
-          Margen bajo, consumo diario fuera de lo normal y diferencias de conciliación.
-        </p>
-      </div>
+      <PageHeader
+        title="Alertas"
+        description="Margen bajo, consumo diario fuera de lo normal y diferencias de conciliación."
+      />
 
-      <div className="flex flex-col gap-2">
+      <StaggerReveal className="flex flex-col gap-2">
         {alertas.map((a) => (
           <Card key={a.id} className={a.vista ? "opacity-60" : undefined}>
             <CardContent className="flex items-center justify-between gap-4 p-4">
@@ -42,7 +42,7 @@ export default async function AlertasPage() {
         {alertas.length === 0 ? (
           <p className="text-sm text-muted-foreground">Sin alertas registradas todavía.</p>
         ) : null}
-      </div>
+      </StaggerReveal>
     </div>
   );
 }

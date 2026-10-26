@@ -5,18 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/page-header";
+import { StaggerReveal } from "@/components/stagger-reveal";
 
 export default async function ConfiguracionPage() {
   const [modelos, umbrales] = await Promise.all([getModelosPrecios(), getConfiguracionAlertas()]);
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">Configuración</h1>
-        <p className="text-sm text-muted-foreground">
-          Precios por modelo y umbrales de alertas.
-        </p>
-      </div>
+      <PageHeader title="Configuración" description="Precios por modelo y umbrales de alertas." />
 
       <Card>
         <CardHeader>
@@ -67,9 +64,12 @@ export default async function ConfiguracionPage() {
                 <th className="px-4 py-2">Vigente desde</th>
               </tr>
             </thead>
-            <tbody>
+            <StaggerReveal as="tbody">
               {modelos.map((m) => (
-                <tr key={m.id} className="border-b border-border/60 last:border-0">
+                <tr
+                  key={m.id}
+                  className="border-b border-border/60 transition-colors duration-150 last:border-0 hover:bg-surface/60"
+                >
                   <td className="px-4 py-2.5">
                     <Badge variant="accent" className="mr-2">
                       {m.proveedor}
@@ -101,7 +101,7 @@ export default async function ConfiguracionPage() {
                   </td>
                 </tr>
               ) : null}
-            </tbody>
+            </StaggerReveal>
           </table>
         </CardContent>
       </Card>

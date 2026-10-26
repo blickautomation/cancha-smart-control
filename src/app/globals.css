@@ -19,6 +19,14 @@
   --color-warning: #ffb020;
 
   --radius: 0.75rem;
+
+  /* Motion/elevation tokens shared with GSAP timelines (see src/lib/motion.ts) */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card-hover: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 16px 40px -8px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(183, 245, 0, 0.08);
+  --shadow-glow-primary: 0 0 32px rgba(183, 245, 0, 0.25);
+  --shadow-glow-accent: 0 0 32px rgba(25, 200, 255, 0.25);
 }
 
 @theme inline {
@@ -41,9 +49,25 @@
 }
 
 body {
+  position: relative;
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Premium ambient background: two soft brand-colored glows + a faint dot grid, fixed so it never scrolls. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(640px circle at 85% -10%, rgba(183, 245, 0, 0.08), transparent 60%),
+    radial-gradient(520px circle at -10% 25%, rgba(25, 200, 255, 0.08), transparent 60%),
+    radial-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px;
+  background-position: 0 0, 0 0, 0 0;
 }
 
 * {
@@ -53,6 +77,38 @@ body {
 ::selection {
   background: var(--color-primary);
   color: var(--color-primary-foreground);
+}
+
+.text-eyebrow {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.focus-ring-glow {
+  transition: box-shadow 0.2s var(--ease-out);
+}
+.focus-ring-glow:focus-visible {
+  box-shadow: var(--shadow-glow-accent);
+}
+
+@keyframes ambient-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: translate(-50%, 0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1.08);
+  }
+}
+
+.animate-ambient-pulse {
+  animation: ambient-pulse 7s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
+import { StaggerReveal } from "@/components/stagger-reveal";
 import { formatArs, formatUsd } from "@/lib/utils";
 
 export default async function CostosFijosPage() {
@@ -16,12 +18,10 @@ export default async function CostosFijosPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">Costos fijos</h1>
-        <p className="text-sm text-muted-foreground">
-          VPS, Supabase Pro y demás costos que se prorratean entre clientes activos.
-        </p>
-      </div>
+      <PageHeader
+        title="Costos fijos"
+        description="VPS, Supabase Pro y demás costos que se prorratean entre clientes activos."
+      />
 
       {mensualEstimado > 0 ? (
         <Card className="max-w-xs">
@@ -46,9 +46,12 @@ export default async function CostosFijosPage() {
                 <th className="px-4 py-2">Estado</th>
               </tr>
             </thead>
-            <tbody>
+            <StaggerReveal as="tbody">
               {costos.map((c) => (
-                <tr key={c.id} className="border-b border-border/60 last:border-0">
+                <tr
+                  key={c.id}
+                  className="border-b border-border/60 transition-colors duration-150 last:border-0 hover:bg-surface/60"
+                >
                   <td className="px-4 py-2.5">{c.nombre}</td>
                   <td className="px-4 py-2.5 font-mono tabular-nums">
                     {c.moneda === "ARS" ? formatArs(c.monto) : formatUsd(c.monto)}
@@ -73,7 +76,7 @@ export default async function CostosFijosPage() {
                   </td>
                 </tr>
               ) : null}
-            </tbody>
+            </StaggerReveal>
           </table>
         </CardContent>
       </Card>

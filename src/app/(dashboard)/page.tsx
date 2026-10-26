@@ -8,6 +8,7 @@ import {
 import { KpiCard } from "@/components/kpi-card";
 import { StaggerReveal } from "@/components/stagger-reveal";
 import { MargenChart } from "@/components/margen-chart";
+import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatArs, formatMes, formatPct } from "@/lib/utils";
@@ -70,24 +71,25 @@ export default async function DashboardHomePage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <p className="text-sm text-muted-foreground">Último mes calculado</p>
-        <h1 className="text-xl font-semibold capitalize">{formatMes(ultimoMes)}</h1>
-      </div>
+      <PageHeader
+        eyebrow="Último mes calculado"
+        title={formatMes(ultimoMes)}
+        titleClassName="capitalize"
+      />
 
       <StaggerReveal className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label="Mensualidades" value={mensualidadTotal} format={formatArs} />
-        <KpiCard label="Costo total" value={costoTotal} format={formatArs} tone="negative" />
+        <KpiCard label="Mensualidades" value={mensualidadTotal} format="ars" />
+        <KpiCard label="Costo total" value={costoTotal} format="ars" tone="negative" />
         <KpiCard
           label="Ganancia"
           value={gananciaTotal}
-          format={formatArs}
+          format="ars"
           tone={gananciaTotal >= 0 ? "positive" : "negative"}
         />
         <KpiCard
           label="Margen promedio"
           value={margenPromedio}
-          format={formatPct}
+          format="pct"
           tone={margenPromedio >= 0 ? "positive" : "negative"}
         />
       </StaggerReveal>
@@ -157,9 +159,12 @@ export default async function DashboardHomePage() {
                 <th className="px-4 py-2 text-right">Margen</th>
               </tr>
             </thead>
-            <tbody>
+            <StaggerReveal as="tbody">
               {filas.map((f) => (
-                <tr key={f.id} className="border-b border-border/60 last:border-0">
+                <tr
+                  key={f.id}
+                  className="border-b border-border/60 transition-colors duration-150 last:border-0 hover:bg-surface/60"
+                >
                   <td className="px-4 py-2.5">
                     <Link href={`/clientes/${f.cliente.id}`} className="hover:text-accent">
                       {f.cliente.nombre}
@@ -183,7 +188,7 @@ export default async function DashboardHomePage() {
                   </td>
                 </tr>
               ))}
-            </tbody>
+            </StaggerReveal>
           </table>
         </CardContent>
       </Card>

@@ -1,10 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAuthClient } from "@/lib/supabase/server";
 import { NavLinks } from "@/components/nav-links";
 import { signOut } from "@/app/login/actions";
 import { Button } from "@/components/ui/button";
 
 export default async function DashboardLayout({ children }: LayoutProps<"/">) {
-  const supabase = await createClient();
+  const supabase = await createAuthClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -16,9 +16,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/">) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-primary shadow-[0_0_12px_rgba(183,245,0,0.8)]" />
-              <span className="font-mono text-xs uppercase tracking-[0.3em] text-accent">
-                Cancha Smart
-              </span>
+              <span className="text-eyebrow">Cancha Smart</span>
             </div>
             <form action={signOut}>
               <Button variant="ghost" size="sm" type="submit">
