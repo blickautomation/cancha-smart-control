@@ -17,6 +17,21 @@ export interface Cliente {
   fecha_alta: string;
   fecha_baja: string | null;
   notas: string | null;
+  dia_cobro?: number | null;
+  creado_en: string;
+}
+
+export type EstadoCobro = "pendiente" | "pagado";
+
+export interface Cobro {
+  id: string;
+  cliente_id: string;
+  mes: string;
+  fecha_vencimiento: string;
+  monto_esperado_ars: number;
+  estado: EstadoCobro;
+  monto_pagado_ars: number | null;
+  fecha_pago: string | null;
   creado_en: string;
 }
 

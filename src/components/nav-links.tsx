@@ -10,6 +10,7 @@ import { prefersReducedMotion } from "@/lib/motion";
 const links = [
   { href: "/", label: "Resumen" },
   { href: "/clientes", label: "Clientes" },
+  { href: "/cobros", label: "Cobros" },
   { href: "/costos-fijos", label: "Costos fijos" },
   { href: "/usdc", label: "USDC" },
   { href: "/conciliacion", label: "Conciliación" },

@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { guardarDiaCobro } from "../../cobros/actions";
 import { StaggerReveal } from "@/components/stagger-reveal";
 import { formatArs, formatMes, formatPct } from "@/lib/utils";
 
@@ -53,6 +54,27 @@ export default async function ClienteDetallePage({
             <Badge variant={estadoVariant[cliente.estado]}>{cliente.estado}</Badge>
           </div>
           <p className="text-sm text-muted-foreground">{cliente.pack ?? "Sin pack asignado"}</p>
+          <form
+            action={guardarDiaCobro.bind(null, id)}
+            className="mt-2 flex flex-wrap items-end gap-2"
+          >
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="dia_cobro">Día de cobro (1-28)</Label>
+              <Input
+                id="dia_cobro"
+                name="dia_cobro"
+                type="number"
+                min="1"
+                max="28"
+                defaultValue={cliente.dia_cobro ?? ""}
+                className="w-28"
+                required
+              />
+            </div>
+            <Button type="submit" size="sm" variant="outline">
+              Guardar
+            </Button>
+          </form>
         </div>
         <div className="flex gap-2">
           {(["activo", "pausado", "baja"] as const).map((estado) => (

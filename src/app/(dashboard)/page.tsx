@@ -1,20 +1,24 @@
 import Link from "next/link";
-import {
-  getAlertasRecientes,
-  getCostosMensualesPorMes,
-  getTendenciaMensual,
-  getUltimoMesConDatos,
-} from "@/lib/queries";
+import { contarCobrosVencidos, getAlertasRecientes, getTendenciaMensual } from "@/lib/queries";
 import { KpiCard } from "@/components/kpi-card";
 import { StaggerReveal } from "@/components/stagger-reveal";
-import { MargenChart } from "@/components/margen-chart";
+import { MargenChartLazy } from "@/components/margen-chart-lazy";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatArs, formatMes, formatPct, formatUsd } from "@/lib/utils";
 
 export default async function DashboardHomePage() {
-  const ultimoMes = await getUltimoMesConDatos();
+  // Una sola etapa en paralelo; el último mes y sus filas salen de la tendencia (antes: 2 etapas en serie).
+  const [tendencia, alertas, cobrosVencidos] = await Promise.all([
+    getTendenciaMensual(6),
+    getAlertasRecientes(true, 6),
+    contarCobrosVencidos(),
+  ]);
+  const ultimoMes = tendencia.reduce<string | null>(
+    (max, f) => (max === null || f.mes > max ? f.mes : max),
+    null
+  );
 
   if (!ultimoMes) {
     return (
@@ -41,11 +45,9 @@ export default async function DashboardHomePage() {
     );
   }
 
-  const [filas, tendencia, alertas] = await Promise.all([
-    getCostosMensualesPorMes(ultimoMes),
-    getTendenciaMensual(6),
-    getAlertasRecientes(true, 6),
-  ]);
+  const filas = tendencia
+    .filter((f) => f.mes === ultimoMes)
+    .sort((a, b) => b.ganancia_ars - a.ganancia_ars);
 
   const mensualidadTotal = filas.reduce((acc, f) => acc + f.mensualidad_ars, 0);
   const costoTotal = filas.reduce((acc, f) => acc + f.costo_total_ars, 0);
@@ -77,6 +79,18 @@ export default async function DashboardHomePage() {
         titleClassName="capitalize"
       />
 
+      {cobrosVencidos > 0 ? (
+        <Link
+          href="/cobros"
+          className="flex items-center justify-between rounded-xl border border-negative/40 bg-negative/10 px-4 py-3 text-sm text-negative transition-colors hover:bg-negative/15"
+        >
+          <span>
+            {cobrosVencidos === 1 ? "1 cobro vencido" : `${cobrosVencidos} cobros vencidos`}
+          </span>
+          <span aria-hidden>Ver cobros →</span>
+        </Link>
+      ) : null}
+
       <StaggerReveal className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard label="Mensualidades" value={mensualidadTotal} format="ars" />
         <KpiCard label="Costo total" value={costoTotal} format="ars" tone="negative" />
@@ -101,7 +115,7 @@ export default async function DashboardHomePage() {
           </CardHeader>
           <CardContent>
             {tendenciaPorMes.length > 1 ? (
-              <MargenChart data={tendenciaPorMes} />
+              <MargenChartLazy data={tendenciaPorMes} />
             ) : (
               <p className="py-10 text-center text-sm text-muted-foreground">
                 Con un mes más de datos aparece la tendencia acá.

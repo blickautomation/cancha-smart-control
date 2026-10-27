@@ -62,6 +62,7 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
+  transform: translateZ(0);
   background-image:
     radial-gradient(640px circle at 85% -10%, rgba(183, 245, 0, 0.08), transparent 60%),
     radial-gradient(520px circle at -10% 25%, rgba(25, 200, 255, 0.08), transparent 60%),
@@ -109,6 +110,7 @@ body::before {
 
 .animate-ambient-pulse {
   animation: ambient-pulse 7s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,14 +1,11 @@
-import { createAuthClient } from "@/lib/supabase/server";
 import { NavLinks } from "@/components/nav-links";
 import { signOut } from "@/app/login/actions";
 import { Button } from "@/components/ui/button";
 
-export default async function DashboardLayout({ children }: LayoutProps<"/">) {
-  const supabase = await createAuthClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+// Datos financieros en vivo: nunca prerenderizar con los datos del momento del build.
+export const dynamic = "force-dynamic";
 
+export default function DashboardLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur">
@@ -20,7 +17,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/">) {
             </div>
             <form action={signOut}>
               <Button variant="ghost" size="sm" type="submit">
-                {user?.email ?? "Salir"}
+                Salir
               </Button>
             </form>
           </div>
